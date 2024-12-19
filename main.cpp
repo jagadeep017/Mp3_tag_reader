@@ -6,7 +6,9 @@ using namespace std;
 int main(int argc,char **argv){
     int res=operation_type(argc,argv);
     mp3 obj;
-    strcpy(obj.name,argv[2]);
+    if(res!=HELP){
+        strcpy(obj.name,argv[2]);
+    }
     switch (res) {
     case NO_OPERATION:
         cout<<"ERROR: INVALID ARGUMENT"<<endl;

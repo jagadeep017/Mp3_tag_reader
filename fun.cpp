@@ -25,13 +25,13 @@ void help(){
     cout<<"usage: ./a.out {options} filename<.mp3>"<<endl;
     cout<<"options:"<<endl;
     cout<<"-h: help(Displayes this help info)"<<endl;
-    cout<<"-v: view(Prints version info)"<<endl;
+    cout<<"-v: view(Prints info in the tags)"<<endl;
     cout<<"-e: edit"<<endl;
-    cout<<"-t: Modifies Title tag"<<endl;
-    cout<<"-a: Modifies Artist tag"<<endl;
-    cout<<"-A: Modifies Album tag"<<endl;
-    cout<<"-y: Modifies Year tag"<<endl;
-    cout<<"-c: Modifies Comment tag"<<endl;
+    cout<<"\t-t: Modifies Title tag"<<endl;
+    cout<<"\t-a: Modifies Artist tag"<<endl;
+    cout<<"\t-A: Modifies Album tag"<<endl;
+    cout<<"\t-y: Modifies Year tag"<<endl;
+    cout<<"\t-c: Modifies Comment tag"<<endl;
 }
 
 void view(int argc, char **argv,mp3 *obj){
@@ -62,23 +62,24 @@ void view(int argc, char **argv,mp3 *obj){
     obj->flags=fgetc(fptr);
     fseek(fptr,10,SEEK_SET);
     
-    read(&obj->title,fptr);
-    cout<<"Title: "<<obj->title<<endl;
-
-    read(&obj->artist,fptr);
-    cout<<"Artist: "<<obj->artist<<endl;
-
-    read(&obj->album,fptr);
-    cout<<"Album: "<<obj->album<<endl;
-
-    read(&obj->year,fptr);
-    cout<<"Year: "<<obj->year<<endl;
-
-    read(&obj->music,fptr);
-    cout<<"Music: "<<obj->music<<endl;
-
-    read(&obj->comment,fptr);
-    cout<<"comment: "<<obj->comment<<endl;
+    read(&obj->buffer,fptr);
+    cout<<"Title: "<<obj->buffer<<endl;
+    delete obj->buffer;
+    read(&obj->buffer,fptr);
+    cout<<"Artist: "<<obj->buffer<<endl;
+    delete obj->buffer;
+    read(&obj->buffer,fptr);
+    cout<<"Album: "<<obj->buffer<<endl;
+    delete obj->buffer;
+    read(&obj->buffer,fptr);
+    cout<<"Year: "<<obj->buffer<<endl;
+    delete obj->buffer;
+    read(&obj->buffer,fptr);
+    cout<<"Music: "<<obj->buffer<<endl;
+    delete obj->buffer;
+    read(&obj->buffer,fptr);
+    cout<<"comment: "<<obj->buffer<<endl;
+    delete obj->buffer;
     cout<<"---------------------------------------------------------------------"<<endl;
     fclose(fptr);
 }
