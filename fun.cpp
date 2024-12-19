@@ -35,7 +35,7 @@ void help(){
 }
 
 void view(int argc, char **argv,mp3 *obj){
-    char buffer[128];
+    char buffer[6];
     char temp;
     char *ptr=strstr(argv[2],".");
     if(strcmp(ptr,".mp3")!=0){

@@ -14,18 +14,11 @@ typedef class Mp3{
     char name[20];
     char ver[2];
     char flags;
-    char *title;
-    char *artist;
-    char *album;
-    char *year;
-    char *music;
-    char * comment;
-    unsigned int size;
+    char *buffer;
     Mp3(){
         ver[0]='\0';
         ver[1]='\0';
         flags=0;
-        size=0;
     }
 }mp3;
 
