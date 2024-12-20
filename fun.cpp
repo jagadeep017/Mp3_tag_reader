@@ -67,22 +67,22 @@ void view(int argc, char **argv,mp3 *obj){
     fseek(fptr,10,SEEK_SET);        //skipping the first 10 bytes
     
     read(&obj->buffer,fptr);                    //reading the title tag
-    cout<<"Title: "<<obj->buffer<<endl;
+    cout<<"Title    : "<<obj->buffer<<endl;
     delete obj->buffer;                                 //deleting the buffer to free the memory to avoid memory leak
     read(&obj->buffer,fptr);                    //reading the artist tag
-    cout<<"Artist: "<<obj->buffer<<endl;
+    cout<<"Artist   : "<<obj->buffer<<endl;
     delete obj->buffer;
     read(&obj->buffer,fptr);                    //reading the album tag
-    cout<<"Album: "<<obj->buffer<<endl;
+    cout<<"Album    : "<<obj->buffer<<endl;
     delete obj->buffer;
     read(&obj->buffer,fptr);                    //reading the year tag
-    cout<<"Year: "<<obj->buffer<<endl;
+    cout<<"Year     : "<<obj->buffer<<endl;
     delete obj->buffer;
     read(&obj->buffer,fptr);                    //reading the genre tag
-    cout<<"Genre: "<<obj->buffer<<endl;
+    cout<<"Genre    : "<<obj->buffer<<endl;
     delete obj->buffer;
     read(&obj->buffer,fptr);                    //reading the comment tag
-    cout<<"comment: "<<obj->buffer<<endl;
+    cout<<"comment  : "<<obj->buffer<<endl;
     delete obj->buffer;
     cout<<"---------------------------------------------------------------------"<<endl;
     fclose(fptr);
@@ -108,6 +108,8 @@ void read(char **output,FILE *fptr){
 void edit(int argc, char **argv){
     if(argv[2][0]!='-'){                                //checking if the argument is valid
         cout<<"ERROR: INVALID ARGUMENT"<<endl;
+        cout<<"Please pass tag argiments like: -t/-a/-A/-m/-y/-c"<<endl;
+        cout<<"Ex:- ./a.out -e -y 2023 name.mp3"<<endl;
         return;
     }
     char *ptr=strstr(argv[4],".");      //pointer to the occurance of '.' in the file name
@@ -137,29 +139,37 @@ void edit(int argc, char **argv){
     }
     fread(buffer,1,10,fptr);        //reading the first 10 bytes of the file to the buffer
     fwrite(buffer,1,10,fptr2);           //writing the first 10 bytes of the file to the temp file
+    
     switch(argv[2][1]){                     //assaigning the number of tags to skip based on the argument
         case 't':
+            cout<<"Modifying Title Tag to ";
             skip=0;
             break;
         case 'a':
+            cout<<"Modifying Artist Tag to ";
             skip=1;
             break;
         case 'A':
+            cout<<"Modifying Album Tag to ";
             skip=2;
             break;
         case 'm':
+            cout<<"Modifying Genre Tag to ";
             skip=4;
             break;
         case 'y':
+            cout<<"Modifying Year Tag to ";
             skip=3;
             break;
         case 'c':
+            cout<<"Modifying Comment Tag to ";
             skip=5;
             break;
         default:
             cout<<"ERROR: INVALID ARGUMENT"<<endl;   //if the argument is invalid just return
             return;
     }
+    cout<<argv[3]<<endl;
     for(int i=0;i<skip;i++){        //skipping the tags
         cpy_tag(fptr,fptr2);
     }
