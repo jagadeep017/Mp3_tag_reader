@@ -6,7 +6,9 @@
 
 using namespace std;
 
-//takes command line arguments and returns the operation type
+//function takes command line arguments and returns the operation type
+//argc : command line arguments count
+//argv : command line argumnets vector
 int operation_type(int argc, char **argv){
     if(argc==1){
         return NO_OPERATION;
@@ -23,9 +25,25 @@ int operation_type(int argc, char **argv){
     return NO_OPERATION;
 }
 
+//function to check if atleast one argument is a valid mp3 file name
+//argc : command line arguments count
+//argv : command line argumnets vector
+char *is_valid(int argc,char **argv){
+    char* index=argv[2];    
+    char*ptr;
+    for(int i=3;index!=NULL;i++){
+        ptr=strstr(index,".");
+        if(ptr&&strcmp(ptr,".mp3")==0){
+            return index;
+        }
+        index=argv[i];
+    }
+    return index;
+}
+
 //function to display options and usage
 void help(){
-    cout<<"usage: ./a.out {options} filename<.mp3>"<<endl;
+    cout<<"usage: ./a.out {options} filename.mp3"<<endl;
     cout<<"options:"<<endl;
     cout<<"-h: help(Displayes this help info)"<<endl;
     cout<<"-v: view(Prints info in the tags)"<<endl;
@@ -38,73 +56,110 @@ void help(){
 }
 
 //function to view the tags in the mp3 file
-void view(int argc, char **argv,mp3 *obj){
-    char buffer[6];         //buffer to store some datas of the file
-    char *ptr=strstr(argv[2],".");      //pointer to the occurance of '.' in the file name
-    if(strcmp(ptr,".mp3")!=0){          //checking if the file name consists of .mp3 extension
-        cout<<"ERROR: INVALID FILE TYPE"<<endl;
-        cout<<"File must be <.mp3> type"<<endl;
-        return;
-    }
-    FILE *fptr=fopen(argv[2],"r");      //opening the file in read mode
+//name : name of the mp3 file
+void view(const char* name){
+    char *buffer = new char[6];         //buffer to store some datas of the file
+    char *tag;                          //tag magic string
+    FILE *fptr=fopen(name,"r");      //opening the file in read mode
     if(fptr==NULL){                                     //checking if the file is opened successfully    
         cout<<"ERROR: FILE NOT FOUND"<<endl;
         return;
     }
     fread(buffer,1,3,fptr);                   //reading the first 3 bytes of the file
-    buffer[3]='\0';                                 //adding null character at the end of the buffer
+    buffer[3]='\0';                                     //adding null character at the end of the buffer
     if(strcmp(buffer,"ID3")!=0){                 //checking if the file of mp3 format
         cout<<"ERROR: INVALID FILE FORMAT "<<buffer<<endl;
         return;
     }
     cout<<"MP3 tag reader and editer for ";
     cout<<buffer;
-    obj->ver[0]=fgetc(fptr);                    //reading the version info
-    obj->ver[1]=fgetc(fptr);
-    cout<<"v"<<(int)(obj->ver[0])<<endl;
+    buffer[0]=fgetc(fptr);                    //reading the version info
+    buffer[1]=fgetc(fptr);
+    cout<<"v"<<(int)(buffer[0])<<endl;
+    delete[] buffer;
     cout<<"---------------------------------------------------------------------"<<endl;
-    obj->flags=fgetc(fptr);
     fseek(fptr,10,SEEK_SET);        //skipping the first 10 bytes
     
-    read(&obj->buffer,fptr);                    //reading the title tag
-    cout<<"Title    : "<<obj->buffer<<endl;
-    delete obj->buffer;                                 //deleting the buffer to free the memory to avoid memory leak
-    read(&obj->buffer,fptr);                    //reading the artist tag
-    cout<<"Artist   : "<<obj->buffer<<endl;
-    delete obj->buffer;
-    read(&obj->buffer,fptr);                    //reading the album tag
-    cout<<"Album    : "<<obj->buffer<<endl;
-    delete obj->buffer;
-    read(&obj->buffer,fptr);                    //reading the year tag
-    cout<<"Year     : "<<obj->buffer<<endl;
-    delete obj->buffer;
-    read(&obj->buffer,fptr);                    //reading the genre tag
-    cout<<"Genre    : "<<obj->buffer<<endl;
-    delete obj->buffer;
-    read(&obj->buffer,fptr);                    //reading the comment tag
-    cout<<"comment  : "<<obj->buffer<<endl;
-    delete obj->buffer;
+    tag=read(&buffer,fptr);                    //reading the title tag
+    if(strcmp(tag,"TIT2")==0){                 //checking if Title tag is present
+        cout<<"Title    : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the buffer to avoid memory leak
+        delete[] tag;
+        tag=read(&buffer,fptr);                    //reading the artist tag
+    }
+    else{
+        cout<<"Title    : Nill"<<endl;
+    }
+    if(strcmp(tag,"TPE1")==0){                 //checking if Artist tag is present
+        cout<<"Artist   : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the buffer to avoid memory leak
+        delete[] tag;
+        tag=read(&buffer,fptr);                    //reading the album tag
+    }
+    else{
+        cout<<"Artist   : Nill"<<endl;
+    }
+    if(strcmp(tag,"TALB")==0){                 //checking if Album tag is present
+        cout<<"Album    : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the buffer to avoid memory leak
+        delete[] tag;
+        tag=read(&buffer,fptr);                    //reading the year tag
+    }
+    else{
+        cout<<"Album    : Nill"<<endl;
+    }
+    if(strcmp(tag,"TYER")==0){                 //checking if Year tag is present
+        cout<<"Year     : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the buffer to avoid memory leak
+        delete[] tag;
+        tag=read(&buffer,fptr);                    //reading the genre tag
+    }
+    else{
+        cout<<"Year     : Nill"<<endl;
+    }
+    if(strcmp(tag,"TCON")==0){                 //checking if Genre tag is present
+        cout<<"Genre    : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the buffer to avoid memory leak
+        delete[] tag;
+        tag=read(&buffer,fptr);                    //reading the comment tag
+
+    }
+    else{
+        cout<<"Genre    : Nill"<<endl;
+    }
+    if(strcmp(tag,"COMM")==0){                 //checking if Comment tag is present
+        cout<<"comment  : "<<buffer<<endl;
+        delete[] buffer;                                 //deleting the bufferto avoid memory leak
+        delete[] tag;
+    }
+    else{
+        cout<<"comment  : Nill"<<endl;
+    }
     cout<<"---------------------------------------------------------------------"<<endl;
     fclose(fptr);
 }
 
 //function to read the tags from the file
-void read(char **output,FILE *fptr){
-    char buffer[6];             //buffer to store some datas of the file
-    fgets(buffer,5,fptr);    //reading the first 4 bytes of the file
-    fgetc(fptr),fgetc(fptr),fgetc(fptr);    //skipping the next 3 bytes
+char *read(char **output,FILE *fptr){
+    char *tag=new char[5];             //buffer to store some datas of the file
+    fgets(tag,5,fptr);    //reading the first 4 bytes of the file(tag magic string)
+    tag[4]='\0';
     int size=0;                 //variable to store the size of the tag
     char *ptr=(char *)&size;    //pointer to the lsb of thesize variable
-    for(int i=0;i<4;i++){
+    for(int i=3;i>=0;i--){
         ptr[i]=fgetc(fptr);    //reading the size of the tag
     }
+    fgetc(fptr),fgetc(fptr),fgetc(fptr);    //skipping the next 3 bytes
     *output=new char[size+1];       //allocating memory
     fread(*output,1,size-1,fptr);   //reading the tag
     (*output)[size-1]='\0';         //adding null character at the end of the tag
+    return tag;
 }
 
 
 //function to edit the tags in the mp3 file
+//argc : command line arguments count
+//argv : command line argumnets vector
 void edit(int argc, char **argv){
     if(argv[2][0]!='-'){                                //checking if the argument is valid
         cout<<"ERROR: INVALID ARGUMENT"<<endl;
@@ -175,15 +230,18 @@ void edit(int argc, char **argv){
     }
     fread(buffer,1,4,fptr);     //reading the 4 bytes from the file to the buffer
     fwrite(buffer,1,4,fptr2);       //writing the 4 bytes to the temp file
+    for(int i=3;i>=0;i--){
+        ptr[i]=fgetc(fptr);     //reading the size of the tag
+    }
+    int len=size;
+    size=strlen(argv[3])+1;
+    for(int i=3;i>=0;i--){
+        fputc(ptr[i],fptr2);
+    }
     for(int i=0;i<3;i++){
         fputc(fgetc(fptr),fptr2);    //writing the next 3 bytes to the temp file
     }
-    for(int i=0;i<4;i++){
-        ptr[i]=fgetc(fptr);     //reading the size of the tag
-    }
-    fseek(fptr,size-1,SEEK_CUR);    //skipping the tag
-    size=strlen(argv[3])+1;
-    fwrite(&size,4,1,fptr2);    //writing the size of the new tag
+    fseek(fptr,len-1,SEEK_CUR);    //skipping the tag
     fwrite(argv[3],1,size-1,fptr2); //writing the new tag
     cpy_remaining(fptr,fptr2);  //copying the remaining tags
     fclose(fptr);       //closing the file
@@ -191,7 +249,6 @@ void edit(int argc, char **argv){
     remove(argv[4]);    //removing the original file
     rename("temp.mp3",argv[4]);   //renaming the temp file to the original file
 }
-
 
 //function to copy the remaining tags and data from the file
 void cpy_remaining(FILE *fptr,FILE *fptr2){
@@ -207,14 +264,14 @@ int cpy_tag(FILE *fptr,FILE *fptr2){
     char *ptr=(char *)&size;
     fread(buffer,1,4,fptr);
     fwrite(buffer,1,4,fptr2);
+    ptr=(char *)&size;
+    for(int i=3;i>=0;i--){
+        ptr[i]=fgetc(fptr);
+        fputc(ptr[i],fptr2);
+    }
     for(int i=0;i<3;i++){
         fputc(fgetc(fptr),fptr2);
     }
-    ptr=(char *)&size;
-    for(int i=0;i<4;i++){
-        ptr[i]=fgetc(fptr);
-    }
-    fwrite(&size,4,1,fptr2);
     for(int i=0;i<size-1;i++){
         fputc(fgetc(fptr),fptr2);
     }
