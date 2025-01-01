@@ -17,7 +17,7 @@ void help();
 
 void view(const char *name);
 
-void edit(int argc, char **argv);
+void edit(int argc, char **argv,const char* name);
 
 char *read(char **output,FILE *fptr);
 

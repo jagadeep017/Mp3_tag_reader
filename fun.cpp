@@ -29,9 +29,9 @@ int operation_type(int argc, char **argv){
 //argc : command line arguments count
 //argv : command line argumnets vector
 char *is_valid(int argc,char **argv){
-    char* index=argv[2];    
+    char* index=argv[1];    
     char*ptr;
-    for(int i=3;index!=NULL;i++){
+    for(int i=2;index!=NULL;i++){
         ptr=strstr(index,".");
         if(ptr&&strcmp(ptr,".mp3")==0){
             return index;
@@ -68,7 +68,7 @@ void view(const char* name){
     fread(buffer,1,3,fptr);                   //reading the first 3 bytes of the file
     buffer[3]='\0';                                     //adding null character at the end of the buffer
     if(strcmp(buffer,"ID3")!=0){                 //checking if the file of mp3 format
-        cout<<"ERROR: INVALID FILE FORMAT "<<buffer<<endl;
+        cout<<"This mp3 file does not contain any tags"<<endl;
         return;
     }
     cout<<"MP3 tag reader and editer for ";
@@ -160,26 +160,22 @@ char *read(char **output,FILE *fptr){
 //function to edit the tags in the mp3 file
 //argc : command line arguments count
 //argv : command line argumnets vector
-void edit(int argc, char **argv){
+//name : name of the mp3 file
+void edit(int argc, char **argv,const char* name){
     if(argv[2][0]!='-'){                                //checking if the argument is valid
         cout<<"ERROR: INVALID ARGUMENT"<<endl;
         cout<<"Please pass tag argiments like: -t/-a/-A/-m/-y/-c"<<endl;
         cout<<"Ex:- ./a.out -e -y 2023 name.mp3"<<endl;
         return;
     }
-    char *ptr=strstr(argv[4],".");      //pointer to the occurance of '.' in the file name
-    if(ptr&&strcmp(ptr,".mp3")){                    //checking if the file name consists of .mp3 extension
-        cout<<"ERROR: File must be <.mp3> type"<<endl;
-        return;
-    }
-    FILE *fptr=fopen(argv[4],"r");          //opening the file in read mode
+    char *ptr;
+    FILE *fptr=fopen(name,"r");          //opening the file in read mode
     if(fptr==NULL){                                             //checking if the file is opened successfully
-        cout<<"ERROR: unable open the "<<argv[4]<<" File"<<endl;
+        cout<<"ERROR: unable open the "<<name<<" File"<<endl;
         return;
     }
     char buffer[11];        //buffer to store some datas of the file
     unsigned int size=0,skip=0;     //variable to store the size of the tag and the number of tags to skip
-    ptr=(char *)&size;              //pointer to the lsb of the size variable
     fread(buffer,1,3,fptr);        //reading the first 3 bytes of the file
     buffer[3]='\0';                     //adding null character at the end of the buffer
     if(strcmp(buffer,"ID3")){                   //checking if the file of mp3 format
@@ -224,30 +220,46 @@ void edit(int argc, char **argv){
             cout<<"ERROR: INVALID ARGUMENT"<<endl;   //if the argument is invalid just return
             return;
     }
-    cout<<argv[3]<<endl;
+    ptr=argv[3];
+    cout<<"\"";
+    for(int i=4;name!=ptr;i++){
+        cout<<ptr<<" ";
+        ptr=argv[i];
+    }
+    cout<<"\"";
+    cout<<endl;
     for(int i=0;i<skip;i++){        //skipping the tags
         cpy_tag(fptr,fptr2);
     }
     fread(buffer,1,4,fptr);     //reading the 4 bytes from the file to the buffer
     fwrite(buffer,1,4,fptr2);       //writing the 4 bytes to the temp file
+    ptr=(char *)&size;              //pointer to the lsb of the size variable
     for(int i=3;i>=0;i--){
         ptr[i]=fgetc(fptr);     //reading the size of the tag
     }
     int len=size;
-    size=strlen(argv[3])+1;
-    for(int i=3;i>=0;i--){
+    size=0;
+    for(int i=3;strcmp(argv[i],name);i++){
+        size+=strlen(argv[i])+1;        //adding the size of the words to the size variable
+    }
+    for(int i=3;i>=0;i--){                //writing the size of the tag to the temp file
         fputc(ptr[i],fptr2);
     }
     for(int i=0;i<3;i++){
         fputc(fgetc(fptr),fptr2);    //writing the next 3 bytes to the temp file
     }
-    fseek(fptr,len-1,SEEK_CUR);    //skipping the tag
-    fwrite(argv[3],1,size-1,fptr2); //writing the new tag
+    fseek(fptr,len-1,SEEK_CUR);    //skipping the tag in the original file
+    for(int i=3;strcmp(argv[i],name);i++){  //writing the new tags till the file name
+    if(i!=3){
+        fputc(' ',fptr2);               //writing a space after each word
+    }
+        fwrite(argv[i],1,strlen(argv[i]),fptr2);    //writing the word to the temp file
+    }
     cpy_remaining(fptr,fptr2);  //copying the remaining tags
     fclose(fptr);       //closing the file
     fclose(fptr2);      //closing the temp file
-    remove(argv[4]);    //removing the original file
-    rename("temp.mp3",argv[4]);   //renaming the temp file to the original file
+    remove(name);    //removing the original file
+    rename("temp.mp3",name);   //renaming the temp file to the original file
 }
 
 //function to copy the remaining tags and data from the file

@@ -26,7 +26,7 @@ int main(int argc,char **argv){
             view(index);
             break;
         case EDIT:                          //if edit is passed
-            edit(argc,argv);
+            edit(argc,argv,index);
             break;
     }
     return 0;
